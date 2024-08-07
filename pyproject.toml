@@ -1,7 +1,7 @@
 [project]
 name = "minicfg"
 version = "0.1.0"
-description = "TBD"
+description = "Lightweight and opinionated config library for your Python services."
 authors = [
     {name = "jieggii", email = "jieggii@protonmail.com"},
 ]
