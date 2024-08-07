@@ -2,8 +2,8 @@
 Lightweight and opinionated config library for your Python services.
 
 
->>> [!NOTE]
->>> Work in progress.
+> [!NOTE]
+> Work in progress.
 
 ```python
 from minicfg.minicfg import Minicfg, minicfg_prefix
