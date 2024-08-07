@@ -41,7 +41,7 @@ class Minicfg:
             if attr_name.startswith("_"):
                 continue
 
-            attr = self.__getattribute__(attr_name)
+            attr = super().__getattribute__(attr_name)
             yield attr_name, attr
 
     @staticmethod
@@ -107,6 +107,17 @@ class Minicfg:
                         raise FieldValueNotProvidedError(field.name_with_prefix(self._prefix), provider)
 
         self._is_populated = True
+
+    def __getattribute__(self, item: typing.Any):
+        cls = super().__getattribute__("__class__")
+        attr = getattr(cls, item, None)
+
+        if isinstance(attr, AbstractField):
+            return attr.value
+
+        # default behavior for attributes that are not Fields
+        return super().__getattribute__(item)
+
 
 def minicfg_provider(provider: AbstractProvider):
     def decorator(cls: Minicfg):
