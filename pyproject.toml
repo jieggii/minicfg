@@ -1,0 +1,39 @@
+[project]
+name = "minicfg"
+version = "0.1.0"
+description = "TBD"
+authors = [
+    {name = "jieggii", email = "jieggii@protonmail.com"},
+]
+dependencies = []
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "isort>=5.13.2",
+    "black>=24.8.0",
+]
+
+[tool.pdm.scripts]
+fmt.shell = "isort ./minicfg && black ./minicfg"
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 120
