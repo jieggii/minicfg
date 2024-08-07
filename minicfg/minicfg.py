@@ -36,26 +36,40 @@ class Minicfg:
 
         self._is_populated = False
 
-    def _iter_public_attrs(self):
-        for attr_name in dir(self):
-            if attr_name.startswith("_"):
-                continue
+    def __getattribute__(self, item: typing.Any):
+        cls = super().__getattribute__("__class__")
+        attr = getattr(cls, item, None)
 
-            attr = super().__getattribute__(attr_name)
-            yield attr_name, attr
+        if isinstance(attr, AbstractField):
+            return attr.value
 
-    @staticmethod
-    def _attr_is_child_minicfg(attr: typing.Any) -> bool:
-        if isinstance(attr, type) and issubclass(attr, Minicfg):
-            return True
-        return False
+        # default behavior for attributes that are not Fields
+        return super().__getattribute__(item)
+
+    @property
+    def is_populated(self) -> bool:
+        return self._is_populated
+
+    def dict(self) -> dict[str, typing.Any]:
+        if not self._is_populated:
+            raise RuntimeError("config is not populated yet")
+
+        result = {}
+        for attr_name, attr in self._iter_public_attrs():
+            if isinstance(attr, AbstractField):
+                result[attr_name] = attr.value
+
+            elif isinstance(attr, Minicfg):
+                print(f"here {attr_name}")
+                result[attr_name] = attr.dict()
+
+        return result
 
     def populate(self) -> None:
         provider = self._default_provider or EnvProvider()
 
         for attr_name, attr in self._iter_public_attrs():
-            if self._attr_is_child_minicfg(attr):
-                attr: typing.Type[Minicfg]
+            if isinstance(attr, type) and issubclass(attr, Minicfg):  # if attr is a child Minicfg type
                 child_minicfg = attr()
 
                 # inherit prefix if needed:
@@ -72,8 +86,8 @@ class Minicfg:
                 self.__setattr__(attr_name, child_minicfg)
                 child_minicfg.populate()
 
-            elif isinstance(attr, AbstractField):  # if attr is field
-                field: AbstractField = attr
+            elif isinstance(attr, Field):  # if attr is field
+                field = attr
                 if not field.name:
                     field.name = attr_name
 
@@ -108,15 +122,13 @@ class Minicfg:
 
         self._is_populated = True
 
-    def __getattribute__(self, item: typing.Any):
-        cls = super().__getattribute__("__class__")
-        attr = getattr(cls, item, None)
+    def _iter_public_attrs(self):
+        for attr_name in dir(self):
+            if attr_name.startswith("_"):
+                continue
 
-        if isinstance(attr, AbstractField):
-            return attr.value
-
-        # default behavior for attributes that are not Fields
-        return super().__getattribute__(item)
+            attr = super().__getattribute__(attr_name)
+            yield attr_name, attr
 
 
 def minicfg_provider(provider: AbstractProvider):
