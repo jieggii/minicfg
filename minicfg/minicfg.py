@@ -1,7 +1,7 @@
 import typing
 
 from .exceptions import FieldConflictError, FieldValueNotProvidedError
-from .field import Field, FieldPopulationResult, AbstractField
+from .field import AbstractField, Field, FieldPopulationResult
 from .provider import AbstractProvider, EnvProvider
 
 
