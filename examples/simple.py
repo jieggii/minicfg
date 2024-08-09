@@ -1,6 +1,7 @@
-from minicfg.minicfg import Minicfg
-from minicfg.field import Field
 from minicfg.caster import to_int
+from minicfg.field import Field
+from minicfg.minicfg import Minicfg
+
 
 class Env(Minicfg):
     # DATABASE HOST will be set to localhost if no value provided
