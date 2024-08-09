@@ -16,8 +16,22 @@ class FloatCaster(AbstractCaster):
     def cast(self, value: str) -> typing.Any:
         return float(value)
 
+class BoolCaster(AbstractCaster):
+    def __init__(self):
+        self.true = {"true", "yes", "on", "enable", "1"}
+        self.false = {"false", "no", "off", "disable", "0"}
+
+    def cast(self, value: str) -> bool:
+        if value in self.true:
+            return True
+        elif value in self.false:
+            return False
+
+        raise ValueError("value provided cannot be casted to bool")
+
 
 to_int = IntCaster()
 to_float = FloatCaster()
+to_bool = BoolCaster()
 
 # todo: write more basic casters
