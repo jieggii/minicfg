@@ -29,9 +29,29 @@ class BoolCaster(AbstractCaster):
 
         raise ValueError("value provided cannot be casted to bool")
 
+class ListCaster(AbstractCaster):
+    def __init__(self, sep: str = ",", item_caster: AbstractCaster | None = None):
+        self.sep = sep
+        self.item_caster = item_caster
+
+    def cast(self, value: str) -> list[typing.Any]:
+        str_items = value.split(self.sep)
+
+        casted_items: list[typing.Any] = []
+        if self.item_caster:
+            for item in str_items:
+                try:
+                    casted = self.item_caster.cast(item)
+                    casted_items.append(casted)
+                except Exception as e:
+                    raise ValueError(f'failed to cast list item "{item}" using {self.item_caster.__class__.__name__}') from e
+
+        return str_items
+
 
 to_int = IntCaster()
 to_float = FloatCaster()
 to_bool = BoolCaster()
+to_list = ListCaster()
 
 # todo: write more basic casters
