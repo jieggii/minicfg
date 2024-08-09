@@ -18,6 +18,6 @@ class FloatCaster(AbstractCaster):
 
 
 to_int = IntCaster()
-float_caster = FloatCaster()
+to_float = FloatCaster()
 
 # todo: write more basic casters
