@@ -60,7 +60,6 @@ class Minicfg:
                 result[attr_name] = attr.value
 
             elif isinstance(attr, Minicfg):
-                print(f"here {attr_name}")
                 result[attr_name] = attr.dict()
 
         return result
