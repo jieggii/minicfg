@@ -26,7 +26,7 @@ dev = [
 
 [tool.pdm.scripts]
 test = "python -m unittest"
-fmt.shell = "isort ./minicfg ./tests && black ./minicfg ./tests"
+fmt.shell = "isort ./minicfg ./tests ./examples && black ./minicfg ./tests ./examples"
 
 [tool.black]
 line-length = 120
