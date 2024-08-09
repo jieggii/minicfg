@@ -1,6 +1,5 @@
+from minicfg import Minicfg, Field
 from minicfg.caster import to_int
-from minicfg.field import Field
-from minicfg.minicfg import Minicfg
 
 
 class Env(Minicfg):

@@ -1,6 +1,5 @@
 from minicfg.caster import to_int
-from minicfg.field import Field
-from minicfg.minicfg import Minicfg, minicfg_provider
+from minicfg import Minicfg, Field, minicfg_provider
 from minicfg.provider import AbstractProvider
 
 
