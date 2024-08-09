@@ -22,10 +22,12 @@ distribution = true
 dev = [
     "isort>=5.13.2",
     "black>=24.8.0",
+    "coverage>=7.6.1",
 ]
 
 [tool.pdm.scripts]
-test = "python -m unittest"
+test = "coverage run -m unittest discover"
+cover = "coverage html"
 fmt.shell = "isort ./minicfg ./tests ./examples && black ./minicfg ./tests ./examples"
 
 [tool.black]
