@@ -9,11 +9,11 @@ class AbstractCaster(ABC):
 
 
 class IntCaster(AbstractCaster):
-    def cast(self, value: str) -> typing.Any:
+    def cast(self, value: str) -> int:
         return int(value)
 
 class FloatCaster(AbstractCaster):
-    def cast(self, value: str) -> typing.Any:
+    def cast(self, value: str) -> float:
         return float(value)
 
 class BoolCaster(AbstractCaster):
