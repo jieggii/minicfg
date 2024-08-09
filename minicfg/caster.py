@@ -37,14 +37,15 @@ class ListCaster(AbstractCaster):
     def cast(self, value: str) -> list[typing.Any]:
         str_items = value.split(self.sep)
 
-        casted_items: list[typing.Any] = []
         if self.item_caster:
+            casted_items: list[typing.Any] = []
             for item in str_items:
                 try:
                     casted = self.item_caster.cast(item)
                     casted_items.append(casted)
                 except Exception as e:
                     raise ValueError(f'failed to cast list item "{item}" using {self.item_caster.__class__.__name__}') from e
+            return casted_items
 
         return str_items
 
