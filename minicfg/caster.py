@@ -13,6 +13,6 @@ class IntCaster(AbstractCaster):
         return int(value)
 
 
-int_caster = IntCaster()
+to_int = IntCaster()
 
 # todo: write more basic casters
