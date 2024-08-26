@@ -7,7 +7,7 @@ from .provider import AbstractProvider, EnvProvider
 
 def _read_raw_value_from_file(path: str) -> str:
     with open(path, "r") as file:
-        return file.read()
+        return file.read().strip()
 
 
 class Minicfg:
