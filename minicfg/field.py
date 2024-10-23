@@ -16,7 +16,7 @@ def _read_raw_value_from_file(path: str) -> str:
 
 class Field:
     """
-    TODO
+    Field class represents a configuration field.
     """
 
     _name: str  # name of the field
@@ -51,10 +51,16 @@ class Field:
         self._name = value
 
     @property
-    def value(self) -> Any:
+    def populated_value(self) -> Any:
         return self._populated_value
 
     def populate(self, provider: AbstractProvider, field_name_prefix: str | None = None):
+        """
+        Populate the field using the given provider.
+        :param provider: provider used to get the field raw value.
+        :param field_name_prefix: prefix to prepend to the field name.
+        :return:
+        """
         field_name = f"{field_name_prefix}{self._name}"  # name of the field
         file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
 
@@ -93,6 +99,12 @@ class Field:
         raise FieldValueNotProvidedError(field_name, provider)
 
     def _cast_raw_value_if_needed(self, raw_value: str) -> Any:
+        """
+        Cast the raw value using the caster if it is set.
+        If no caster is set, return the raw value as is.
+        :param raw_value: the raw value to be cast.
+        :return:
+        """
         if self._caster:
             return self._caster.cast(raw_value)
         return raw_value

@@ -7,6 +7,9 @@ from .provider import AbstractProvider, EnvProvider
 _DEFAULT_PROVIDER = EnvProvider
 
 class Minicfg:
+    """
+    Base class for configuration classes.
+    """
     _prefix: str
 
     def __init__(self):
@@ -15,6 +18,12 @@ class Minicfg:
 
     @classmethod
     def populated(cls, provider: AbstractProvider | None = None):
+        """
+        Create an instance of the Minicfg class and populate it with the given provider.
+
+        :param provider: provider used to populate the Minicfg instance.
+        :return:
+        """
         minicfg = cls()
         minicfg.populate(provider)
         return minicfg
@@ -28,6 +37,12 @@ class Minicfg:
         self._prefix = value
 
     def populate(self, provider: AbstractProvider | None = None) -> None:
+        """
+        Populate the Minicfg instance with the given provider.
+
+        :param provider: provider used to populate the Minicfg instance.
+        :return:
+        """
         if not provider:
             provider = _DEFAULT_PROVIDER()
 
