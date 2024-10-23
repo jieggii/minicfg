@@ -80,7 +80,15 @@ class Field:
                 except Exception as e:
                     raise CastingError(field_name=field_name, raw_value=raw_value_from_file, caster=self._caster, exception=e, file_field_name=file_field_name, file_field_value=filepath) from e
 
+            if self._default is not _NOT_SET:
+                self._populated_value = self._default
+                return
+
             raise FieldValueNotProvidedError(field_name, provider, file_field_name)
+
+        if self._default is not _NOT_SET:
+            self._populated_value = self._default
+            return
 
         raise FieldValueNotProvidedError(field_name, provider)
 
