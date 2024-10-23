@@ -1,69 +1,31 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any
 
 from .caster import AbstractCaster
-from .exceptions import CastingError
+from .exceptions import CastingError, FieldValueNotProvidedError, FieldConflictError
 from .provider import AbstractProvider
-
-
-@dataclass
-class FieldPopulationResult:
-    populated: bool
-    default_value_used: bool = False
-
-
-class AbstractField(ABC):
-    @property
-    @abstractmethod
-    def name(self) -> str | None:
-        pass
-
-    @name.setter
-    @abstractmethod
-    def name(self, value: str) -> None:
-        pass
-
-    @property
-    @abstractmethod
-    def value(self) -> Any:
-        pass
-
-    @value.setter
-    @abstractmethod
-    def value(self, value: Any) -> None:
-        pass
-
-    @property
-    @abstractmethod
-    def attach_file_field(self) -> bool:
-        pass
-
-    @abstractmethod
-    def name_with_prefix(self, prefix: str | None) -> str:
-        pass
-
-    @abstractmethod
-    def populate_using_raw_value(self, raw_value: str) -> FieldPopulationResult:
-        pass
-
-    @abstractmethod
-    def populate_using_provider(self, provider: AbstractProvider, field_name: str) -> FieldPopulationResult:
-        pass
 
 
 _NOT_SET = object()
 
 
-class Field(AbstractField):
-    _name: str
-    _name_prefix: str | None
 
-    _default: Any
-    _caster: AbstractCaster
-    _attach_file_field: bool
+def _read_raw_value_from_file(path: str) -> str:
+    with open(path, "r") as file:
+        return file.read().strip()
 
-    _value: Any
+
+class Field:
+    """
+    TODO
+    """
+
+    _name: str  # name of the field
+
+    _default: Any  # default value of the field
+    _caster: AbstractCaster  # caster used to cast raw values
+    _attach_file_field: bool  # indicates whether file field should be attached to the field
+
+    _populated_value: Any  # value determined after field population
 
     def __init__(
         self,
@@ -78,7 +40,7 @@ class Field(AbstractField):
         self._caster = caster
         self._attach_file_field = attach_file_field
 
-        self._value = _NOT_SET
+        self._populated_value = _NOT_SET
 
     @property
     def name(self) -> str | None:
@@ -90,39 +52,39 @@ class Field(AbstractField):
 
     @property
     def value(self) -> Any:
-        return self._value
+        return self._populated_value
 
-    @value.setter
-    def value(self, value: Any) -> None:
-        self._value = value
+    def populate(self, provider: AbstractProvider, field_name_prefix: str | None = None):
+        field_name = f"{field_name_prefix}{self._name}"  # name of the field
+        file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
 
-    @property
-    def attach_file_field(self) -> bool:
-        return self._attach_file_field
+        raw_value_from_provider: str | None = provider.get(field_name)
+        if raw_value_from_provider is not None:
+            if provider.get(file_field_name) is not None:
+                raise FieldConflictError(field_name, file_field_name, provider)
 
-    def name_with_prefix(self, prefix: str | None) -> str:
-        if not prefix:
-            return self._name
-
-        return f"{prefix}{self._name}"
-
-    def populate_using_raw_value(self, raw_value: str) -> FieldPopulationResult:
-        if self._caster:
             try:
-                self._value = self._caster.cast(raw_value)
-                return FieldPopulationResult(populated=True)
+                self._cast_raw_value_if_needed(raw_value_from_provider)
+                return
             except Exception as e:
-                raise CastingError(field_name=self.name, raw_value=raw_value, caster=self._caster, exception=e)
+                raise CastingError(field_name=field_name, raw_value=raw_value_from_provider, caster=self._caster,
+                                   exception=e) from e
 
-        self._value = raw_value
-        return FieldPopulationResult(populated=True)
+        if self._attach_file_field:
+            filepath = provider.get(file_field_name)
+            if filepath is not None:
+                raw_value_from_file = _read_raw_value_from_file(filepath)
+                try:
+                    self._populated_value = self._cast_raw_value_if_needed(raw_value_from_file)
+                    return
+                except Exception as e:
+                    raise CastingError(field_name=field_name, raw_value=raw_value_from_file, caster=self._caster, exception=e, file_field_name=file_field_name, file_field_value=filepath) from e
 
-    def populate_using_provider(self, provider: AbstractProvider, field_name: str) -> FieldPopulationResult:
-        raw_value = provider.get(field_name)
-        if raw_value is None:
-            if self._default is not _NOT_SET:
-                self._value = self._default
-                return FieldPopulationResult(populated=True, default_value_used=True)
-            return FieldPopulationResult(populated=False)
+            raise FieldValueNotProvidedError(field_name, provider, file_field_name)
 
-        return self.populate_using_raw_value(raw_value)
+        raise FieldValueNotProvidedError(field_name, provider)
+
+    def _cast_raw_value_if_needed(self, raw_value: str) -> Any:
+        if self._caster:
+            return self._caster.cast(raw_value)
+        return raw_value

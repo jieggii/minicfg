@@ -27,7 +27,7 @@ class BoolCaster(AbstractCaster):
         elif value in self.false:
             return False
 
-        raise ValueError("value provided cannot be casted to bool")
+        raise ValueError("the provided value cannot be casted to bool")
 
 class ListCaster(AbstractCaster):
     def __init__(self, sep: str = ",", item_caster: AbstractCaster | None = None):
@@ -49,10 +49,9 @@ class ListCaster(AbstractCaster):
 
         return str_items
 
-
-to_int = IntCaster()
-to_float = FloatCaster()
-to_bool = BoolCaster()
-to_list = ListCaster()
+# to_int = IntCaster()
+# to_float = FloatCaster()
+# to_bool = BoolCaster()
+# to_list = ListCaster()
 
 # todo: write more basic casters

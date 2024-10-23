@@ -1,3 +1,2 @@
-from .minicfg import Minicfg
-from .minicfg import minicfg_prefix, minicfg_provider
+from .minicfg import Minicfg, minicfg_prefix
 from .field import Field
