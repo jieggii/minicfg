@@ -64,7 +64,7 @@ class Field:
                 raise FieldConflictError(field_name, file_field_name, provider)
 
             try:
-                self._cast_raw_value_if_needed(raw_value_from_provider)
+                self._populated_value = self._cast_raw_value_if_needed(raw_value_from_provider)
                 return
             except Exception as e:
                 raise CastingError(field_name=field_name, raw_value=raw_value_from_provider, caster=self._caster,
