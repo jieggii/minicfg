@@ -12,9 +12,11 @@ class IntCaster(AbstractCaster):
     def cast(self, value: str) -> int:
         return int(value)
 
+
 class FloatCaster(AbstractCaster):
     def cast(self, value: str) -> float:
         return float(value)
+
 
 class BoolCaster(AbstractCaster):
     def __init__(self):
@@ -28,6 +30,7 @@ class BoolCaster(AbstractCaster):
             return False
 
         raise ValueError("the provided value cannot be casted to bool")
+
 
 class ListCaster(AbstractCaster):
     def __init__(self, sep: str = ",", item_caster: AbstractCaster | None = None):
@@ -44,10 +47,13 @@ class ListCaster(AbstractCaster):
                     casted = self.item_caster.cast(item)
                     casted_items.append(casted)
                 except Exception as e:
-                    raise ValueError(f'failed to cast list item "{item}" using {self.item_caster.__class__.__name__}') from e
+                    raise ValueError(
+                        f'failed to cast list item "{item}" using {self.item_caster.__class__.__name__}'
+                    ) from e
             return casted_items
 
         return str_items
+
 
 # to_int = IntCaster()
 # to_float = FloatCaster()

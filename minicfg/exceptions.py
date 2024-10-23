@@ -8,7 +8,15 @@ class CastingError(Exception):
     caster: AbstractCaster
     exception: Exception
 
-    def __init__(self, field_name: str, raw_value: str, caster: AbstractCaster, exception: Exception, file_field_name: str | None = None, file_field_value: str | None = None):
+    def __init__(
+        self,
+        field_name: str,
+        raw_value: str,
+        caster: AbstractCaster,
+        exception: Exception,
+        file_field_name: str | None = None,
+        file_field_value: str | None = None,
+    ):
         self.field_name = field_name
         self.raw_value = raw_value
         self.caster = caster

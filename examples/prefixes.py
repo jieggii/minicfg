@@ -1,5 +1,5 @@
+from minicfg import Field, Minicfg, minicfg_prefix
 from minicfg.caster import IntCaster
-from minicfg import Minicfg, minicfg_prefix, Field
 
 
 # config with "SERVICE_" prefix:
@@ -26,7 +26,7 @@ class Env(Minicfg):
         PORT: int = Field(caster=IntCaster())  # PORT will be cast to int
 
 
-env = Env.populated() # populate the config using env vars (by default)
+env = Env.populated()  # populate the config using env vars (by default)
 
 print("Meta:")
 print(f"{env.Meta.SOME_VAR=}")

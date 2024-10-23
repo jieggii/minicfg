@@ -1,6 +1,6 @@
-from minicfg import minicfg_prefix, Field, Minicfg
-from minicfg.provider import AbstractProvider
+from minicfg import Field, Minicfg, minicfg_prefix
 from minicfg.caster import IntCaster
+from minicfg.provider import AbstractProvider
 
 
 class MyProvider(AbstractProvider):
@@ -12,8 +12,6 @@ class MyProvider(AbstractProvider):
         return self.data.get(key)
 
 
-
-
 class MyConfig(Minicfg):
     @minicfg_prefix("DATABASE")
     class Database(Minicfg):
@@ -22,7 +20,9 @@ class MyConfig(Minicfg):
         the HOST field below.
         If HOST_FILE is provided, the value of HOST will be read from the file.
         """
+
         HOST = Field(attach_file_field=True)
+
 
 provider = MyProvider()
 config = MyConfig.populated(provider)

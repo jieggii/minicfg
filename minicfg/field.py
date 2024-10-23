@@ -1,12 +1,10 @@
 from typing import Any
 
 from .caster import AbstractCaster
-from .exceptions import CastingError, FieldValueNotProvidedError, FieldConflictError
+from .exceptions import CastingError, FieldConflictError, FieldValueNotProvidedError
 from .provider import AbstractProvider
 
-
 _NOT_SET = object()
-
 
 
 def _read_raw_value_from_file(path: str) -> str:
@@ -73,8 +71,9 @@ class Field:
                 self._populated_value = self._cast_raw_value_if_needed(raw_value_from_provider)
                 return
             except Exception as e:
-                raise CastingError(field_name=field_name, raw_value=raw_value_from_provider, caster=self._caster,
-                                   exception=e) from e
+                raise CastingError(
+                    field_name=field_name, raw_value=raw_value_from_provider, caster=self._caster, exception=e
+                ) from e
 
         if self._attach_file_field:
             filepath = provider.get(file_field_name)
@@ -84,7 +83,14 @@ class Field:
                     self._populated_value = self._cast_raw_value_if_needed(raw_value_from_file)
                     return
                 except Exception as e:
-                    raise CastingError(field_name=field_name, raw_value=raw_value_from_file, caster=self._caster, exception=e, file_field_name=file_field_name, file_field_value=filepath) from e
+                    raise CastingError(
+                        field_name=field_name,
+                        raw_value=raw_value_from_file,
+                        caster=self._caster,
+                        exception=e,
+                        file_field_name=file_field_name,
+                        file_field_value=filepath,
+                    ) from e
 
             if self._default is not _NOT_SET:
                 self._populated_value = self._default

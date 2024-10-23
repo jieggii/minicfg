@@ -3,13 +3,14 @@ import typing
 from .field import Field
 from .provider import AbstractProvider, EnvProvider
 
-
 _DEFAULT_PROVIDER = EnvProvider
+
 
 class Minicfg:
     """
     Base class for configuration classes.
     """
+
     _prefix: str
 
     def __init__(self):
@@ -112,6 +113,7 @@ def minicfg_prefix(prefix: str):
     Set a prefix for all fields in the Minicfg class.
     :param prefix: prefix.
     """
+
     def decorator(cls: Minicfg):
         cls._prefix = f"{prefix}_"
         return cls
