@@ -27,15 +27,6 @@ class Minicfg:
     def prefix(self, value: str):
         self._prefix = value
 
-    def __getattribute__(self, item: typing.Any):
-        cls = super().__getattribute__("__class__")
-        attr = getattr(cls, item, None)
-
-        if isinstance(attr, Field):
-            return attr.value
-
-        return super().__getattribute__(item) # default behavior for attributes that are not Fields
-
     def populate(self, provider: AbstractProvider | None = None) -> None:
         if not provider:
             provider = _DEFAULT_PROVIDER()
@@ -68,13 +59,37 @@ class Minicfg:
                 # populate field:
                 field.populate(provider, self._prefix)
 
-    def _iter_public_attrs(self):
+                # replace the field with its populated value:
+                self.__setattr__(attr_name, field.populated_value)
+
+    def _iter_public_attrs(self) -> typing.Generator[tuple[str, typing.Any], None, None]:
+        """
+        Iterate over public attributes of the Minicfg instance.
+
+        :return:
+        """
         for attr_name in dir(self):
             if attr_name.startswith("_"):
                 continue
 
             attr = super().__getattribute__(attr_name)
             yield attr_name, attr
+
+    # def __getattribute__(self, item: typing.Any) -> typing.Any:
+    #     """
+    #     Get attribute value.
+    #     Aliases fields to their values.
+    #
+    #     :param item:
+    #     :return:
+    #     """
+    #     cls = super().__getattribute__("__class__")
+    #     attr = getattr(cls, item, None)
+    #
+    #     if isinstance(attr, Field):
+    #         return attr.value
+    #
+    #     return super().__getattribute__(item) # default behavior for attributes that are not Fields
 
 
 def minicfg_prefix(prefix: str):
