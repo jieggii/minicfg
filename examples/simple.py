@@ -1,5 +1,5 @@
 from minicfg import Minicfg, Field
-from minicfg.caster import to_int
+from minicfg.caster import IntCaster
 
 
 class Env(Minicfg):
@@ -7,11 +7,10 @@ class Env(Minicfg):
     DATABASE_HOST: str = Field(default="localhost")
 
     # DATABASE_PORT value will be cast to int
-    DATABASE_PORT: int = Field(caster=to_int)
+    DATABASE_PORT: int = Field(caster=IntCaster())
 
 
-env = Env()
-env.populate()
+env = Env.populated()  # env provider is used by default
 
 print(f"{env.DATABASE_HOST=}")
 print(f"{env.DATABASE_PORT=}")

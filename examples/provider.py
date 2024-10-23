@@ -1,5 +1,5 @@
-from minicfg.caster import to_int
-from minicfg import Minicfg, Field, minicfg_provider
+from minicfg.caster import IntCaster
+from minicfg import Minicfg, Field
 from minicfg.provider import AbstractProvider
 
 
@@ -13,14 +13,13 @@ class MockProvider(AbstractProvider):
         return self.data.get(key)
 
 
-@minicfg_provider(MockProvider())
 class MockConfig(Minicfg):
     DATABASE_HOST: str = Field()
-    DATABASE_PORT: int = Field(default=1234, caster=to_int)
+    DATABASE_PORT: int = Field(default=1234, caster=IntCaster())
 
 
-config = MockConfig()
-config.populate()
+mock_provider = MockProvider()
+config = MockConfig.populated(mock_provider)
 
 print(f"{config.DATABASE_HOST=}")
 print(f"{config.DATABASE_PORT=}")
