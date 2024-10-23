@@ -2,8 +2,7 @@
 Lightweight and opinionated config library for your Python services.
 
 ```python
-from minicfg.minicfg import Minicfg, minicfg_prefix
-from minicfg.field import Field
+from minicfg import Minicfg, Field, minicfg_prefix
 from minicfg.caster import IntCaster
 
 @minicfg_prefix("SERVICE")
@@ -20,8 +19,7 @@ class Env(Minicfg):
         PORT = Field(caster=IntCaster())  # PORT will be cast to int
 
 
-env = Env()
-env.populate()  # populate the config using env vars (by default)
+env = Env.populated() # populate the config using env vars (by default)
 
 print(f"Bot token: {env.Bot.TOKEN}")
 print(f"Mongo settings: {env.Mongo.HOST}:{env.Mongo.PORT}")
@@ -31,3 +29,5 @@ print(f"Mongo settings: {env.Mongo.HOST}:{env.Mongo.PORT}")
 # >>> Bot token: token
 # >>> Mongo settings: localhost:5432
 ```
+
+> Want more showcases? See [examples](/examples) directory.
