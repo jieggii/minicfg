@@ -1,5 +1,5 @@
 # minicfg
-Lightweight and opinionated config library for your Python services.
+Lightweight, straightforward, and self-contained configuration package for your Python services.
 
 ```python
 from minicfg import Minicfg, Field, minicfg_prefix
@@ -30,4 +30,8 @@ print(f"Mongo settings: {env.Mongo.HOST}:{env.Mongo.PORT}")
 # >>> Mongo settings: localhost:5432
 ```
 
-> Want more showcases? See [examples](/examples) directory.
+> Would like to see more showcases? Please see [examples](/examples) directory.
+
+## Features
+
+
