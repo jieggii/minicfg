@@ -19,7 +19,7 @@ class Minicfg:
             self._prefix = ""
 
     @classmethod
-    def populated(cls, provider: AbstractProvider | None = None):
+    def populated(cls, provider: AbstractProvider | None = None) -> "Minicfg":
         """
         Create an instance of the Minicfg class and populate it with the given provider.
 

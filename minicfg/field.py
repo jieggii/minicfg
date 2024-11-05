@@ -58,13 +58,13 @@ class Field:
     def populated_value(self) -> Any:
         return self._populated_value
 
-    def populate(self, provider: AbstractProvider, field_name_prefix: str | None = None):
+    def populate(self, provider: AbstractProvider, field_name_prefix: str | None = None) -> None:
         """
         Populate the field using the given provider.
         :param provider: provider used to get the field raw value.
         :param field_name_prefix: prefix to prepend to the field name.
-        :return:
         """
+
         field_name = f"{field_name_prefix}{self._name}"  # name of the field
         file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
 
