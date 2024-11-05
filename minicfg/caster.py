@@ -37,9 +37,15 @@ class FloatCaster(AbstractCaster):
 
 
 class BoolCaster(AbstractCaster):
+    """
+    Caster that casts the provided value to a boolean.
+    """
+
+    true = {"true", "yes", "on", "enable", "1"}
+    false = {"false", "no", "off", "disable", "0"}
+
     def __init__(self):
-        self.true = {"true", "yes", "on", "enable", "1"}
-        self.false = {"false", "no", "off", "disable", "0"}
+        pass
 
     def cast(self, value: str) -> bool:
         if value in self.true:
@@ -81,11 +87,3 @@ class ListCaster(AbstractCaster):
             return casted_items
 
         return str_items
-
-
-# to_int = IntCaster()
-# to_float = FloatCaster()
-# to_bool = BoolCaster()
-# to_list = ListCaster()
-
-# todo: write more basic casters
