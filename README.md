@@ -1,5 +1,20 @@
 # minicfg
-minicfg is a lightweight, minimalistic and easy-to-use configuration package for your Python services.
+📑 **minicfg** is a lightweight, minimalistic and easy-to-use configuration package for your Python services.
+
+## Features
+- **Lightweight**: minicfg is a small package with no dependencies.
+- **Easy to use**: minicfg provides a simple API to define and populate configurations.
+- **Type casting**: minicfg supports type casting for the fields.
+- **File attachment**: minicfg supports attaching a file to a field.
+- **Prefixing**: minicfg supports prefixing the fields with a custom name prefix.
+- **Nested configurations**: minicfg supports nested configurations.
+- **Custom providers**: minicfg supports custom providers to populate the configuration from different sources.
+
+## Installation
+Just install minicfg using your favorite package manager, for example:
+```bash
+pip install minicfg
+```
 
 ```python
 from minicfg import Minicfg, Field, minicfg_prefix
@@ -40,11 +55,3 @@ And you will get
 
 > More examples are available [here](/examples).
 
-## Features
-- **Lightweight**: minicfg is a small package with no dependencies.
-- **Easy to use**: minicfg provides a simple API to define and populate configurations.
-- **Type casting**: minicfg supports type casting for the fields.
-- **File attachment**: minicfg supports attaching a file to a field.
-- **Prefixing**: minicfg supports prefixing the fields with a custom name prefix.
-- **Nested configurations**: minicfg supports nested configurations.
-- **Custom providers**: minicfg supports custom providers to populate the configuration from different sources.
