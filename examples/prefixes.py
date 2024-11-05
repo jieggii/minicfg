@@ -1,10 +1,16 @@
+"""
+This example demonstrates how to use prefixes with minicfg.
+"""
+
 from minicfg import Field, Minicfg, minicfg_prefix
 from minicfg.caster import IntCaster
 
-
-# config with "SERVICE_" prefix:
-@minicfg_prefix("SERVICE")
+@minicfg_prefix("SERVICE")  # <-- The prefix for the main config.
 class Env(Minicfg):
+    """
+    The main config with the "SERVICE_" prefix.
+    """
+
     # Sub minicfg without any prefix indicated.
     # prefix will be inherited from the parent minicfg and prepended to the class name.
     # The full prefix: "SERVICE_Meta_".
@@ -14,13 +20,13 @@ class Env(Minicfg):
 
     # Sub minicfg with "BOT" prefix indicated.
     # The full prefix: "SERVICE_BOT_".
-    @minicfg_prefix("BOT")
+    @minicfg_prefix("BOT")  # <-- The prefix for the sub config.
     class Bot(Minicfg):
         TOKEN: str = Field()
 
     # Sub minicfg with "MONGO" prefix indicated.
     # The full prefix: "SERVICE_MONGO_".
-    @minicfg_prefix("MONGO")
+    @minicfg_prefix("MONGO")  # <-- The prefix for the sub config.
     class Mongo(Minicfg):
         HOST: str = Field()
         PORT: int = Field(caster=IntCaster())  # PORT will be cast to int
@@ -41,15 +47,17 @@ print("Mongo:")
 print(f"{env.Mongo.HOST=}")
 print(f"{env.Mongo.PORT=}")
 
-# Run SERVICE_Meta_SOME_VAR=xyz SERVICE_BOT_TOKEN=token SERVICE_MONGO_HOST=localhost SERVICE_MONGO_PORT=12 python prefixes.py
-# Output:
-# Meta:
-# env.Meta.SOME_VAR='xyz'
-# env.Meta.SOME_OTHER_VAR='this is default value'
-#
-# Bot:
-# env.Bot.TOKEN='token'
-#
-# Mongo:
-# env.Mongo.HOST='localhost'
-# env.Mongo.PORT=12
+"""
+Try running `SERVICE_Meta_SOME_VAR=xyz SERVICE_BOT_TOKEN=token SERVICE_MONGO_HOST=localhost SERVICE_MONGO_PORT=12 python prefixes.py` and you should see the following output:
+
+>>> Meta:
+>>> env.Meta.SOME_VAR='xyz'
+>>> env.Meta.SOME_OTHER_VAR='this is default value'
+
+>>> Bot:
+>>> env.Bot.TOKEN='token'
+
+>>> Mongo:
+>>> env.Mongo.HOST='localhost'
+>>> env.Mongo.PORT=12
+"""
