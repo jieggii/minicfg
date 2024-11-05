@@ -8,6 +8,12 @@ _NOT_SET = object()
 
 
 def _read_raw_value_from_file(path: str) -> str:
+    """
+    Read the raw value from the file at the given path.
+    :param path: path to the file.
+    :return: the raw value read from the file (with leading and trailing whitespaces removed).
+    """
+
     with open(path, "r") as file:
         return file.read().strip()
 
@@ -109,7 +115,7 @@ class Field:
         Cast the raw value using the caster if it is set.
         If no caster is set, return the raw value as is.
         :param raw_value: the raw value to be cast.
-        :return:
+        :return: the casted value.
         """
         if self._caster:
             return self._caster.cast(raw_value)

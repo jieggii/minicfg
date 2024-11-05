@@ -11,10 +11,11 @@ class Minicfg:
     Base class for configuration classes.
     """
 
-    _prefix: str
+    _prefix: str  # prefix used for all fields in the Minicfg instance
 
     def __init__(self):
         if not hasattr(self, "_prefix"):
+            # if prefix is not set, set it to an empty string:
             self._prefix = ""
 
     @classmethod
@@ -23,8 +24,9 @@ class Minicfg:
         Create an instance of the Minicfg class and populate it with the given provider.
 
         :param provider: provider used to populate the Minicfg instance.
-        :return:
+        :return: populated Minicfg instance.
         """
+
         minicfg = cls()
         minicfg.populate(provider)
         return minicfg
@@ -39,11 +41,12 @@ class Minicfg:
 
     def populate(self, provider: AbstractProvider | None = None) -> None:
         """
-        Populate the Minicfg instance with the given provider.
+        Populate the Minicfg instance using the given provider.
+        All fields and child Minicfg instances will be populated recursively.
 
-        :param provider: provider used to populate the Minicfg instance.
-        :return:
+        :param provider: provider used to populate the Minicfg instance. If not provided, the default _DEFAULT_PROVIDER will be used.
         """
+
         if not provider:
             provider = _DEFAULT_PROVIDER()
 
@@ -82,8 +85,9 @@ class Minicfg:
         """
         Iterate over public attributes of the Minicfg instance.
 
-        :return:
+        :return: generator of tuples (attribute name, attribute).
         """
+
         for attr_name in dir(self):
             if attr_name.startswith("_"):
                 continue
@@ -91,26 +95,13 @@ class Minicfg:
             attr = super().__getattribute__(attr_name)
             yield attr_name, attr
 
-    # def __getattribute__(self, item: typing.Any) -> typing.Any:
-    #     """
-    #     Get attribute value.
-    #     Aliases fields to their values.
-    #
-    #     :param item:
-    #     :return:
-    #     """
-    #     cls = super().__getattribute__("__class__")
-    #     attr = getattr(cls, item, None)
-    #
-    #     if isinstance(attr, Field):
-    #         return attr.value
-    #
-    #     return super().__getattribute__(item) # default behavior for attributes that are not Fields
-
 
 def minicfg_prefix(prefix: str):
     """
-    Set a prefix for all fields in the Minicfg class.
+    Decorator for setting a prefix for the Minicfg class.
+    Will be used as a prefix for all fields in the Minicfg class.
+
+    Please note, that an "_" will be appended to the prefix. Use raw_prefix instead if you don't want it.
     :param prefix: prefix.
     """
 

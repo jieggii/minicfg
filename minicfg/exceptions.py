@@ -3,6 +3,10 @@ from .provider import AbstractProvider
 
 
 class CastingError(Exception):
+    """
+    Exception raised when an error occurs during casting.
+    """
+
     field_name: str
     raw_value: str
     caster: AbstractCaster
@@ -38,6 +42,10 @@ class CastingError(Exception):
 
 
 class FieldValueNotProvidedError(Exception):
+    """
+    Exception raised when a field value is not provided by the provider.
+    """
+
     field_name: str
     provider: AbstractProvider
     file_field_name: str | None
@@ -57,6 +65,10 @@ class FieldValueNotProvidedError(Exception):
 
 
 class FieldConflictError(Exception):
+    """
+    Exception raised when a conflict occurs between a field and its corresponding file field.
+    """
+
     field_name: str
     file_field_name: str
 
