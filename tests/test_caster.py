@@ -1,5 +1,7 @@
 import unittest
-from minicfg.caster import IntCaster, FloatCaster, BoolCaster, ListCaster
+
+from minicfg.caster import BoolCaster, FloatCaster, IntCaster, ListCaster
+
 
 class TestIntCaster(unittest.TestCase):
     def setUp(self):
@@ -13,9 +15,14 @@ class TestIntCaster(unittest.TestCase):
         result = self.caster.cast("-123123")
         self.assertEqual(result, -123123)
 
+    def test_non_numeric(self):
+        with self.assertRaises(ValueError):
+            self.caster.cast("abcdef")
+
     def test_empty(self):
         with self.assertRaises(ValueError):
             self.caster.cast("")
+
 
 class TestFloatCaster(unittest.TestCase):
     def setUp(self):
@@ -29,9 +36,14 @@ class TestFloatCaster(unittest.TestCase):
         result = self.caster.cast("-123.456")
         self.assertEqual(result, -123.456)
 
+    def test_non_numeric(self):
+        with self.assertRaises(ValueError):
+            self.caster.cast("abcdef")
+
     def test_empty(self):
         with self.assertRaises(ValueError):
             self.caster.cast("")
+
 
 class TestBoolCaster(unittest.TestCase):
     def setUp(self):
@@ -50,6 +62,7 @@ class TestBoolCaster(unittest.TestCase):
     def test_invalid_value(self):
         with self.assertRaises(ValueError):
             self.caster.cast("invalid")
+
 
 class TestListCaster(unittest.TestCase):
     def setUp(self):
