@@ -16,6 +16,7 @@ Just install minicfg using your favorite package manager, for example:
 pip install minicfg
 ```
 
+## Usage
 ```python
 from minicfg import Minicfg, Field, minicfg_prefix
 from minicfg.caster import IntCaster
