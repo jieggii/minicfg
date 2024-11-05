@@ -65,6 +65,9 @@ class Field:
         :param field_name_prefix: prefix to prepend to the field name.
         """
 
+        if field_name_prefix is None:
+            field_name_prefix = ""
+
         field_name = f"{field_name_prefix}{self._name}"  # name of the field
         file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
 
