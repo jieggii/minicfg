@@ -69,12 +69,13 @@ class Field:
             field_name_prefix = ""
 
         field_name = f"{field_name_prefix}{self._name}"  # name of the field
-        file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
 
         raw_value_from_provider: str | None = provider.get(field_name)
         if raw_value_from_provider is not None:
-            if provider.get(file_field_name) is not None:
-                raise FieldConflictError(field_name, file_field_name, provider)
+            if self._attach_file_field:
+                file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
+                if provider.get(file_field_name) is not None:
+                    raise FieldConflictError(field_name, file_field_name, provider)
 
             try:
                 self._populated_value = self._cast_raw_value_if_needed(raw_value_from_provider)
@@ -85,6 +86,7 @@ class Field:
                 ) from e
 
         if self._attach_file_field:
+            file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
             filepath = provider.get(file_field_name)
             if filepath is not None:
                 raw_value_from_file = _read_raw_value_from_file(filepath)
