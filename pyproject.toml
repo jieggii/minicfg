@@ -1,6 +1,6 @@
 [project]
 name = "minicfg"
-version = "1.0.0"
+version = "2.0.0"
 description = "Lightweight and opinionated config library for your Python services."
 authors = [
     {name = "jieggii", email = "jieggii@protonmail.com"},
