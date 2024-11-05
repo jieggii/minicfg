@@ -110,3 +110,17 @@ def minicfg_prefix(prefix: str):
         return cls
 
     return decorator
+
+
+def raw_prefix(prefix: str):
+    """
+    Decorator for setting a prefix for the Minicfg class.
+    Will be used as a prefix for all fields in the Minicfg class.
+    :param prefix: prefix.
+    """
+
+    def decorator(cls: Minicfg):
+        cls._prefix = prefix
+        return cls
+
+    return decorator
