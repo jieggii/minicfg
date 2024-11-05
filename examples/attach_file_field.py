@@ -10,6 +10,7 @@ class MyProvider(AbstractProvider):
     """
     A provider that reads the hostname from the /etc/hostname file.
     """
+
     data = {
         "DATABASE_HOST_FILE": "/etc/hostname",
     }

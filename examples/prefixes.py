@@ -5,6 +5,7 @@ This example demonstrates how to use prefixes with minicfg.
 from minicfg import Field, Minicfg, minicfg_prefix
 from minicfg.caster import IntCaster
 
+
 @minicfg_prefix("SERVICE")  # <-- The prefix for the main config.
 class Env(Minicfg):
     """

@@ -17,12 +17,12 @@ class Env(Minicfg):
     # DATABASE_PORT value will be cast to int
     DATABASE_PORT: int = Field(caster=IntCaster())
 
+
 # Populate the config using env vars (by default):
 env = Env.populated()
 
 print(f"{env.DATABASE_HOST=}")
 print(f"{env.DATABASE_PORT=}")
-
 
 
 """

@@ -11,6 +11,7 @@ class MockProvider(AbstractProvider):
     """
     A custom mock provider that provides the DATABASE_HOST value.
     """
+
     def __init__(self):
         self.data = {
             "DATABASE_HOST": "localhost",
@@ -30,7 +31,6 @@ config = MockConfig.populated(mock_provider)
 
 print(f"{config.DATABASE_HOST=}")
 print(f"{config.DATABASE_PORT=}")
-
 
 
 """
