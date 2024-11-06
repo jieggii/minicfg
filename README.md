@@ -50,7 +50,7 @@ Try running the script with the following environment variables:
 MYSERVICE_BOT_TOKEN=token MYSERVICE_API1_API_TOKEN=token123 MYSERVICE_MONGO_HOST=localhost MYSERVICE_MONGO_PORT=5432
 And you should see the following output:
 
->>> Bot token: token
+>>> Telegram bot token: token
 >>> API1 token: token123
 >>> Mongo settings: localhost:5432
 """
