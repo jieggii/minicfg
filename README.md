@@ -41,15 +41,17 @@ class Env(Minicfg):
 # Populate the configuration from the environment variables:
 env = Env.populated()
 
-print(f"Bot token: {env.TelegramBot.TOKEN}")
+print(f"Telegram bot token: {env.TelegramBot.TOKEN}")
+print(f"API1 token: {env.API1.API_TOKEN}")
 print(f"Mongo settings: {env.Mongo.HOST}:{env.Mongo.PORT}")
 
 """
 Try running the script with the following environment variables:
-SERVICE_BOT_TOKEN=token SERVICE_MONGO_HOST=localhost SERVICE_MONGO_PORT=5432
-And you will get
+MYSERVICE_BOT_TOKEN=token MYSERVICE_API1_API_TOKEN=token123 MYSERVICE_MONGO_HOST=localhost MYSERVICE_MONGO_PORT=5432
+And you should see the following output:
 
 >>> Bot token: token
+>>> API1 token: token123
 >>> Mongo settings: localhost:5432
 """
 ```
