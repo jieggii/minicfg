@@ -69,7 +69,7 @@ class Field:
         self._default = default
         self._caster = caster
         self._description = description
-        self._file_field = Field(name=f"{self._name}_FILE" if self._name else None) if attach_file_field else None
+        self._file_field = Field(name=f"{self._name}_FILE" if self._name else None, description=f"{self._description} file" if self._description else None) if attach_file_field else None
 
         self._value = None
 
