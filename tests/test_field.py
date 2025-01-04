@@ -1,9 +1,11 @@
 import unittest
-
 import unittest.mock
+
 from minicfg.caster import AbstractCaster
-from minicfg.field import NO_DEFAULT_VALUE, Field, FieldValueNotProvidedError, CastingError
+from minicfg.field import NO_DEFAULT_VALUE, CastingError, Field, FieldValueNotProvidedError
+
 from ._mock_provider import MockProvider
+
 
 class TestField(unittest.TestCase):
     def test_field_initialization_with_default_values(self):

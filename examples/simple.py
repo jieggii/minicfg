@@ -29,7 +29,7 @@ Try running `DATABASE_PORT=5432 python simple.py` and you should see the followi
 >>> env.DATABASE_HOST='localhost'  # default value is used
 >>> env.DATABASE_PORT=5432
 """
-if __name__ == '__main__':
+if __name__ == "__main__":
     env = MyConfig()  # create a new instance of the config
     env.populate()  # populate the config using env vars (by default)
 

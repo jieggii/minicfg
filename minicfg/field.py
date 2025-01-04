@@ -10,7 +10,10 @@ class CastingError(Exception):
     """
 
     def __init__(
-        self, field_name: str, raw_value: str, caster: AbstractCaster,
+        self,
+        field_name: str,
+        raw_value: str,
+        caster: AbstractCaster,
     ):
         super().__init__(
             f'failed to cast raw value "{raw_value}" of the field {field_name} using {caster.__class__.__name__}',
@@ -29,6 +32,7 @@ class FieldValueNotProvidedError(Exception):
 
 
 NO_DEFAULT_VALUE = object()
+
 
 class Field:
     """
@@ -150,10 +154,13 @@ class Field:
                 populated_value = self.caster.cast(raw_value)
             except Exception as e:
                 raise CastingError(
-                    field_name=self._name, raw_value=raw_value, caster=self._caster,
+                    field_name=self._name,
+                    raw_value=raw_value,
+                    caster=self._caster,
                 ) from e
 
         self._value = populated_value
+
 
 def _read_raw_value_from_file(path: str) -> str:
     """

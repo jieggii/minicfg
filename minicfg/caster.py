@@ -138,4 +138,5 @@ class JSONCaster(AbstractCaster):
             return self._load(value)
 
         import json
+
         return json.loads(value)

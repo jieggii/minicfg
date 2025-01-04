@@ -1,9 +1,10 @@
 import unittest
 import unittest.mock
 
-from minicfg import Minicfg, minicfg_name, Field
-from minicfg.minicfg import minicfg_name_sep, _DEFAULT_NAME_SEP
+from minicfg import Field, Minicfg, minicfg_name
+from minicfg.minicfg import _DEFAULT_NAME_SEP, minicfg_name_sep
 from minicfg.provider import AbstractProvider
+
 from ._mock_provider import MockProvider
 
 
@@ -69,9 +70,7 @@ class TestMinicfg(unittest.TestCase):
         class Config(Minicfg):
             field_name = Field()
 
-        provider = MockProvider({
-            "field_name": "hello"
-        })
+        provider = MockProvider({"field_name": "hello"})
         config = Config.new_populated(provider)
         self.assertEqual("hello", config.field_name)
 
@@ -79,9 +78,7 @@ class TestMinicfg(unittest.TestCase):
         class Config(Minicfg):
             field_name = Field()
 
-        provider = MockProvider({
-            "field_name": "hello"
-        })
+        provider = MockProvider({"field_name": "hello"})
         config = Config()
         config.populate(provider)
         self.assertEqual("hello", config.field_name)
@@ -99,12 +96,13 @@ class TestMinicfg(unittest.TestCase):
                 class Nested2(Minicfg):
                     field_name = Field()
 
-
-        provider = MockProvider({
-            "config_field_name": "1",
-            "config_nested1_field_name": "2",
-            "config_nested1_nested2_field_name": "3",
-        })
+        provider = MockProvider(
+            {
+                "config_field_name": "1",
+                "config_nested1_field_name": "2",
+                "config_nested1_nested2_field_name": "3",
+            }
+        )
 
         config = Config()
         config.populate(provider)
@@ -125,6 +123,7 @@ class TestMinicfg(unittest.TestCase):
         for child in config:
             self.assertTrue(isinstance(child, Field) or isinstance(child, Minicfg))
 
+
 class TestDecorators(unittest.TestCase):
     def test_minicfg_name(self):
         name = "TEST_NAME"
@@ -138,6 +137,7 @@ class TestDecorators(unittest.TestCase):
 
     def test_minicfg_name_sep(self):
         sep = "test_sep"
+
         @minicfg_name_sep(sep)
         class Config(Minicfg):
             pass
@@ -145,5 +145,6 @@ class TestDecorators(unittest.TestCase):
         config = Config()
         self.assertEqual(config._name_sep, sep)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

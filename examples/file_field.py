@@ -34,13 +34,14 @@ class MyConfig(Minicfg):
     """
     DATABASE_HOST = Field(attach_file_field=True)
 
+
 """
 Try running `python file_field.py` and you should see the following output:
 >>> config.DATABASE_HOST='<your hostname>'
 
 If you don't have a hostname file, the FileNotFound exception will be raised.
 """
-if __name__ == '__main__':
+if __name__ == "__main__":
     provider = MyProvider()  # create a new instance of the custom provider
 
     config = MyConfig()  # create a new instance of the config

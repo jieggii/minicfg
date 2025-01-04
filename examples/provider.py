@@ -26,6 +26,7 @@ class MyConfig(Minicfg):
     DATABASE_HOST: str = Field()
     DATABASE_PORT: int = Field(caster=IntCaster())
 
+
 """
 Try running `python provider.py` and you should see the following output:
 >>> config.DATABASE_HOST='localhost'

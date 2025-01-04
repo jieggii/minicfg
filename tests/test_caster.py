@@ -1,6 +1,6 @@
 import unittest
 
-from minicfg.caster import BoolCaster, FloatCaster, IntCaster, ListCaster, JSONCaster, AbstractCaster
+from minicfg.caster import AbstractCaster, BoolCaster, FloatCaster, IntCaster, JSONCaster, ListCaster
 
 
 class TestIntCaster(unittest.TestCase):
@@ -105,7 +105,6 @@ class TestListCaster(unittest.TestCase):
         list_caster = ListCaster(sep=self.separator, item_caster=MockCaster())
         self.assertEqual("list", list_caster.typename)
 
-
     def test_list_of_strings(self):
         result = self.caster.cast("a,b,c")
         self.assertEqual(result, ["a", "b", "c"])
@@ -140,17 +139,13 @@ class TestJSONCaster(unittest.TestCase):
         py_dict = {"str": "hello!", "int": 1, "flag": True, "float": 1.1}
         json = '{"str": "hello!", "int": 1, "flag": true, "float": 1.1}'
 
-        self.assertEqual(
-            py_dict, self.caster.cast(json)
-        )
+        self.assertEqual(py_dict, self.caster.cast(json))
 
     def test_json_array(self):
         py_list = ["hello!", 1, True, 1.1]
         json = '["hello!", 1, true, 1.1]'
 
-        self.assertEqual(
-            py_list, self.caster.cast(json)
-        )
+        self.assertEqual(py_list, self.caster.cast(json))
 
     def test_custom_load(self):
         def custom_load(value: str) -> dict:
@@ -164,6 +159,7 @@ class TestJSONCaster(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.caster.cast(json)
+
 
 if __name__ == "__main__":
     unittest.main()

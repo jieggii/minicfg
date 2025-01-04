@@ -14,14 +14,11 @@ class MockProvider(AbstractProvider):
     Used to simulate the environment variables.
     """
 
-    data = {
-        "DATABASE_HOST": "example.com",
-        "DATABASE_PORT": "5432",
-        "EXTERNAL_API_KEY": "api_key"
-    }
+    data = {"DATABASE_HOST": "example.com", "DATABASE_PORT": "5432", "EXTERNAL_API_KEY": "api_key"}
 
     def get(self, key: str) -> str | None:
         return self.data.get(key)
+
 
 class MyConfig(Minicfg):
     @minicfg_name("DATABASE")
@@ -46,7 +43,7 @@ DATABASE
 EXTERNAL_API
  - EXTERNAL_API_KEY: str  # external API key
 """
-if __name__ == '__main__':
+if __name__ == "__main__":
     config = MyConfig()  # create a new instance of the config
     docs_generator = DocsGenerator(config)  # create a new instance of the docs generator
     print(docs_generator.as_plaintext())  # print the documentation as plain text
