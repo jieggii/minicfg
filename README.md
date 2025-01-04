@@ -29,50 +29,56 @@ from minicfg.caster import IntCaster
 class MyConfig(Minicfg):
     @minicfg_name("DATABASE")
     class Database(Minicfg):
-        HOST = Field(attach_file_field=True)
-        PORT = Field(caster=IntCaster())
-    
+        HOST = Field(attach_file_field=True, description="database host")
+        PORT = Field(default=5432, caster=IntCaster(), description="database port")
+
     @minicfg_name("EXTERNAL_API")
     class ExternalAPI(Minicfg):
-        KEY = Field()
-        USER_ID = Field(caster=IntCaster())
-    
+        KEY = Field(description="external API key")
+        USER_ID = Field(caster=IntCaster(), description="external API user ID")
+
+
 if __name__ == '__main__':
     config = MyConfig()  # create an instance of the configuration
     config.populate()  # populate the configuration from the environment variables
-    
+
     print(f"connect to database at {config.Database.HOST}:{config.Database.PORT}")
     print(f"external API key: {config.ExternalAPI.KEY}")
     print(f"external API user: {config.ExternalAPI.USER_ID}")
 ```
 
-> Try running the script with the following environment variables:
-> - `SERVICE_DATABASE_HOST=example.com`
-> - `SERVICE_DATABASE_PORT=5432`
-> - `SERVICE_EXTERNAL_API_KEY=token`
-> - `SERVICE_EXTERNAL_API_USER_ID=123`
-> And you should see the following output:
-> ```
-> connect to database at example.com:5432
-> external API key: token
-> external API user: 123
-> ```
+Try running the script with the following environment variables:
+- `SERVICE_DATABASE_HOST=example.com`
+- `SERVICE_DATABASE_PORT=5432`
+- `SERVICE_EXTERNAL_API_KEY=token`
+- `SERVICE_EXTERNAL_API_USER_ID=123`
+
+And you should see the following output:
+
+```
+connect to database at example.com:5432
+external API key: token
+external API user: 123
+```
 
 > More examples are available [here](/examples).
 
-The documentation generated using minicfg for this class would look like this:
-(use `$ minicifg --format markdown example.MyConfig` to generate docs).
+### Documentation generation
+You can use `minicfg` script to generate documentation for your configuration.
+
+For example, `minicifg --format=markdown example.MyConfig` will generate documentation for 
+the `MyConfig` class above, and it would look like this:
 
 **SERVICE**
 | Name | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
 
 **SERVICE_DATABASE**
-| Name                         | Type  | Default | Description   |
-| ---------------------------- | ----- | ------- | ------------- |
-| `SERVICE_DATABASE_HOST`      | `str` | N/A     | database host |
-| `SERVICE_DATABASE_HOST_FILE` | `str` | N/A     |               |
-| `SERVICE_DATABASE_PORT`      | `int` | N/A     | database port |
+| Name                         | Type  | Default | Description        |
+| ---------------------------- | ----- | ------- | ------------------ |
+| `SERVICE_DATABASE_HOST`      | `str` | N/A     | database host      |
+| `SERVICE_DATABASE_HOST_FILE` | `str` | N/A     | database host file |
+| `SERVICE_DATABASE_PORT`      | `int` | `5432`  | database port      |
 
 
 **SERVICE_EXTERNAL_API**
@@ -80,4 +86,3 @@ The documentation generated using minicfg for this class would look like this:
 | ------------------------------ | ----- | ------- | -------------------- |
 | `SERVICE_EXTERNAL_API_KEY`     | `str` | N/A     | external API key     |
 | `SERVICE_EXTERNAL_API_USER_ID` | `int` | N/A     | external API user ID |
-
