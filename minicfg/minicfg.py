@@ -4,6 +4,7 @@ from .field import Field
 from .provider import AbstractProvider, EnvProvider
 
 _DEFAULT_PROVIDER = EnvProvider
+_DEFAULT_NAME_SEP = "_"
 
 
 class Minicfg:
@@ -11,18 +12,56 @@ class Minicfg:
     Base class for configuration classes.
     """
 
-    _prefix: str  # prefix used for all fields in the Minicfg instance
+    """
+    Name of the minicfg. None value means that the minicfg has no name.
+    """
+    _name: str | None = None
+
+    """
+    Separator used to separate the minicfg name (if any) and the field name.
+    """
+    _name_sep: str = _DEFAULT_NAME_SEP
 
     def __init__(self):
-        if not hasattr(self, "_prefix"):
-            # if prefix is not set, set it to an empty string:
-            self._prefix = ""
+        """
+        Initialize the Minicfg instance.
+        Generates names for all fields and initialize child minicfgs.
+        """
+
+        # add the minicfg name prefix to all field names:
+        for attr_name, field in self._iter_field_instances():
+            if field.name is None:
+                # use the attribute name as the field name if field name is not set:
+                field.name = attr_name
+
+            if self._name:
+                # prepend the minicfg name to the field name the minicfg has a name:
+                field.name = f"{self._name}{self._name_sep}{field.name}"
+
+            if field.file_field:
+                # update the field's attached file field name:
+                field.file_field.name = f"{field.name}_FILE"
+
+        # initialize the child minicfgs:
+        for attr_name in dir(self.__class__):
+            attr_value = getattr(self.__class__, attr_name)
+            if not (isinstance(attr_value, type) and issubclass(attr_value, Minicfg)):
+                continue
+
+            child_minicfg_class = attr_value
+            if self._name:
+                # prepend the minicfg name to the child minicfg name if the minicfg has a name:
+                if child_minicfg_class._name:
+                    child_minicfg_class._name = f"{self._name}{self._name_sep}{child_minicfg_class._name}"
+                else:
+                    child_minicfg_class._name = self._name
+
+            setattr(self, attr_name, child_minicfg_class())
 
     @classmethod
-    def populated(cls, provider: AbstractProvider | None = None) -> "Minicfg":
+    def new_populated(cls, provider: AbstractProvider | None = None) -> "Minicfg":
         """
         Create an instance of the Minicfg class and populate it with the given provider.
-
         :param provider: provider used to populate the Minicfg instance.
         :return: populated Minicfg instance.
         """
@@ -32,12 +71,11 @@ class Minicfg:
         return minicfg
 
     @property
-    def prefix(self) -> str:
-        return self._prefix
-
-    @prefix.setter
-    def prefix(self, value: str):
-        self._prefix = value
+    def name(self):
+        """
+        Name of the minicfg.
+        """
+        return self._name
 
     def populate(self, provider: AbstractProvider | None = None) -> None:
         """
@@ -50,77 +88,69 @@ class Minicfg:
         if not provider:
             provider = _DEFAULT_PROVIDER()
 
-        for attr_name, attr in self._iter_public_attrs():
-            if isinstance(attr, type) and issubclass(attr, Minicfg):  # if attribute is a child Minicfg type
-                # create an instance of the child minicfg:
-                child_minicfg = attr()
+        # populate all fields:
+        for attr_name, field in self._iter_field_instances():
+            field.populate(provider)
+            setattr(
+                self, attr_name, field.value
+            )  #  replace the field attribute with the populated value. Original Field instances will be accessible only in self.__class__
 
-                # use class name as a child minicfg prefix if it is not set:
-                if child_minicfg.prefix == "":
-                    child_minicfg.prefix = f"{child_minicfg.__class__.__name__}_"
+        # populate all child minicfgs:
+        for child_minicfg in self._iter_minicfg_instances():
+            child_minicfg.populate(provider)
 
-                # prepend prefix from the parent minicfg instance:
-                child_minicfg.prefix = f"{self._prefix}{child_minicfg._prefix}"
-
-                # populate the child minicfg:
-                child_minicfg.populate(provider)
-
-                # replace the child minicfg class with its instance:
-                self.__setattr__(attr_name, child_minicfg)
-
-            elif isinstance(attr, Field):  # if attribute is an instance of a Field
-                field = attr
-
-                # if field name is not set, set it to the attribute name:
-                if not field.name:
-                    field.name = attr_name
-
-                # populate field:
-                field.populate(provider, self._prefix)
-
-                # replace the field with its populated value:
-                self.__setattr__(attr_name, field.populated_value)
-
-    def _iter_public_attrs(self) -> typing.Generator[tuple[str, typing.Any], None, None]:
+    def _iter_field_instances(self) -> typing.Generator[typing.Tuple[str, Field], None, None]:
         """
-        Iterate over public attributes of the Minicfg instance.
+        Iterate over all field instances.
+        """
 
-        :return: generator of tuples (attribute name, attribute).
+        # (using self.__class__ to access the original Field instances even if minicfg is populated)
+        for attr_name in dir(self.__class__):
+            attr_value = getattr(self.__class__, attr_name)
+            if isinstance(attr_value, Field):
+                yield attr_name, attr_value
+
+    def _iter_minicfg_instances(self) -> typing.Generator["Minicfg", None, None]:
+        """
+        Iterate over all child minicfg instances.
         """
 
         for attr_name in dir(self):
-            if attr_name.startswith("_"):
-                continue
+            attr_value = getattr(self, attr_name)
+            if isinstance(attr_value, Minicfg):
+                yield attr_value
 
-            attr = super().__getattribute__(attr_name)
-            yield attr_name, attr
+    def __iter__(self):
+        """
+        Iterate over all fields and child minicfg instances.
+        """
+        for _, field in self._iter_field_instances():
+            yield field
+        for minicfg in self._iter_minicfg_instances():
+            yield minicfg
 
 
-def minicfg_prefix(prefix: str):
+def minicfg_name(name: str):
     """
-    Decorator for setting a prefix for the Minicfg class.
-    Will be used as a prefix for all fields in the Minicfg class.
-
-    Please note, that an "_" will be appended to the prefix. Use raw_prefix instead if you don't want it.
-    :param prefix: prefix.
+    Decorator used to set the name of the mincfg.
+    :param name: name of the minicfg.
     """
 
     def decorator(cls: Minicfg):
-        cls._prefix = f"{prefix}_"
+        cls._name = name
         return cls
 
     return decorator
 
 
-def minicfg_raw_prefix(prefix: str):
+def minicfg_name_sep(sep: str):
     """
-    Decorator for setting a prefix for the Minicfg class.
-    Will be used as a prefix for all fields in the Minicfg class.
-    :param prefix: prefix.
+    Decorator used to set the separator of the mincfg.
+    :param sep: separator of the minicfg.
     """
 
     def decorator(cls: Minicfg):
-        cls._prefix = prefix
+        cls._name_sep = sep
         return cls
 
     return decorator

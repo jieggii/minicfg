@@ -1,21 +1,37 @@
 from typing import Any
 
 from .caster import AbstractCaster
-from .exceptions import CastingError, FieldConflictError, FieldValueNotProvidedError
 from .provider import AbstractProvider
 
-_NOT_SET = object()
 
-
-def _read_raw_value_from_file(path: str) -> str:
+class CastingError(Exception):
     """
-    Read the raw value from the file at the given path.
-    :param path: path to the file.
-    :return: the raw value read from the file (with leading and trailing whitespaces removed).
+    Exception raised when an error occurs during casting.
     """
 
-    with open(path, "r") as file:
-        return file.read().strip()
+    def __init__(
+        self,
+        field_name: str,
+        raw_value: str,
+        caster: AbstractCaster,
+    ):
+        super().__init__(
+            f'failed to cast raw value "{raw_value}" of the field {field_name} using {caster.__class__.__name__}',
+        )
+
+
+class FieldValueNotProvidedError(Exception):
+    """
+    Exception raised when a field value is not provided by the provider.
+    """
+
+    def __init__(self, field_name: str, provider: AbstractProvider):
+        super().__init__(
+            f"{field_name} was not provided by {provider.__class__.__name__}, but was expected",
+        )
+
+
+NO_DEFAULT_VALUE = object()
 
 
 class Field:
@@ -27,24 +43,35 @@ class Field:
 
     _default: Any  # default value of the field
     _caster: AbstractCaster  # caster used to cast raw values
-    _attach_file_field: bool  # indicates whether file field should be attached to the field
+    _description: str  # description of the field in documentation purposes
+    _file_field: "Field | None"  # file field attached to the field
 
-    _populated_value: Any  # value determined after field population
+    _value: Any  # value determined after field population
 
     def __init__(
         self,
         name: str | None = None,
-        default: Any = _NOT_SET,
+        default: Any = NO_DEFAULT_VALUE,
         caster: AbstractCaster | None = None,
+        description: str | None = None,
         attach_file_field: bool = False,
     ):
-        self._name = name
+        """
+        Initialize the field.
+        :param name: name of the field. If not set, the name will be determined by the attribute name.
+        :param default: default value of the field.
+        :param caster: caster used to cast raw value to field value.
+        :param description: description of the field in documentation purposes.
+        :param attach_file_field: indicates whether file field should be attached to the field
+        """
 
+        self._name = name
         self._default = default
         self._caster = caster
-        self._attach_file_field = attach_file_field
+        self._description = description
+        self._file_field = Field(name=f"{self._name}_FILE" if self._name else None, description=f"{self._description} file" if self._description else None) if attach_file_field else None
 
-        self._populated_value = _NOT_SET
+        self._value = None
 
     @property
     def name(self) -> str | None:
@@ -55,73 +82,92 @@ class Field:
         self._name = value
 
     @property
-    def populated_value(self) -> Any:
-        return self._populated_value
+    def default(self) -> Any:
+        """
+        Return the default value of the field.
+        """
 
-    def populate(self, provider: AbstractProvider, field_name_prefix: str | None = None) -> None:
+        return self._default
+
+    @property
+    def caster(self) -> AbstractCaster:
+        """
+        Return the caster used to cast raw values to field
+        """
+
+        return self._caster
+
+    @property
+    def description(self) -> str:
+        """
+        Return the field description.
+        """
+
+        return self._description
+
+    @property
+    def value(self) -> Any:
+        """
+        Return the value of the field.
+        """
+
+        return self._value
+
+    @property
+    def file_field(self) -> "Field | None":
+        """
+        Return the attached file field.
+        """
+
+        return self._file_field
+
+    def populate(self, provider: AbstractProvider) -> None:
         """
         Populate the field using the given provider.
-        :param provider: provider used to get the field raw value.
-        :param field_name_prefix: prefix to prepend to the field name.
+        :param provider: provider to use to get the raw value of the field.
         """
 
-        if field_name_prefix is None:
-            field_name_prefix = ""
-
-        field_name = f"{field_name_prefix}{self._name}"  # name of the field
-
-        raw_value_from_provider: str | None = provider.get(field_name)
-        if raw_value_from_provider is not None:
-            if self._attach_file_field:
-                file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
-                if provider.get(file_field_name) is not None:
-                    raise FieldConflictError(field_name, file_field_name, provider)
-
-            try:
-                self._populated_value = self._cast_raw_value_if_needed(raw_value_from_provider)
+        raw_value: str | None = provider.get(self._name)
+        if raw_value is None:
+            if self._file_field:
+                # populate field using attached file field
+                try:
+                    self._file_field.populate(provider)
+                except FieldValueNotProvidedError as e:
+                    if self._default is not NO_DEFAULT_VALUE:
+                        # use the default value if it is provided
+                        self._value = self._default
+                        return
+                    raise FieldValueNotProvidedError(field_name=self._name, provider=provider) from e
+                raw_value = _read_raw_value_from_file(self._file_field.value)
+            elif self._default is not NO_DEFAULT_VALUE:
+                # use the default value if it is provided
+                self._value = self._default
                 return
+            else:
+                # raise an error if the value is not provided and no default value is set
+                raise FieldValueNotProvidedError(field_name=self._name, provider=provider)
+
+        populated_value: Any = raw_value
+        if self.caster:
+            try:
+                populated_value = self.caster.cast(raw_value)
             except Exception as e:
                 raise CastingError(
-                    field_name=field_name, raw_value=raw_value_from_provider, caster=self._caster, exception=e
+                    field_name=self._name,
+                    raw_value=raw_value,
+                    caster=self._caster,
                 ) from e
 
-        if self._attach_file_field:
-            file_field_name = f"{field_name_prefix}{self._name}_FILE"  # name of the corresponding file field
-            filepath = provider.get(file_field_name)
-            if filepath is not None:
-                raw_value_from_file = _read_raw_value_from_file(filepath)
-                try:
-                    self._populated_value = self._cast_raw_value_if_needed(raw_value_from_file)
-                    return
-                except Exception as e:
-                    raise CastingError(
-                        field_name=field_name,
-                        raw_value=raw_value_from_file,
-                        caster=self._caster,
-                        exception=e,
-                        file_field_name=file_field_name,
-                        file_field_value=filepath,
-                    ) from e
+        self._value = populated_value
 
-            if self._default is not _NOT_SET:
-                self._populated_value = self._default
-                return
 
-            raise FieldValueNotProvidedError(field_name, provider, file_field_name)
+def _read_raw_value_from_file(path: str) -> str:
+    """
+    Read the raw value from the file at the given path.
+    :param path: path to the file.
+    :return: the raw value read from the file (with leading and trailing whitespaces removed).
+    """
 
-        if self._default is not _NOT_SET:
-            self._populated_value = self._default
-            return
-
-        raise FieldValueNotProvidedError(field_name, provider)
-
-    def _cast_raw_value_if_needed(self, raw_value: str) -> Any:
-        """
-        Cast the raw value using the caster if it is set.
-        If no caster is set, return the raw value as is.
-        :param raw_value: the raw value to be cast.
-        :return: the casted value.
-        """
-        if self._caster:
-            return self._caster.cast(raw_value)
-        return raw_value
+    with open(path, "r") as file:
+        return file.read().strip()
