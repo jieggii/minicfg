@@ -1,88 +1,100 @@
 import unittest
-from unittest.mock import Mock
-from minicfg.field import Field, _NOT_SET
-from minicfg.exceptions import CastingError, FieldConflictError, FieldValueNotProvidedError
-from minicfg.provider import AbstractProvider
-from minicfg.caster import AbstractCaster
 
+import unittest.mock
+from minicfg.caster import AbstractCaster
+from minicfg.field import NO_DEFAULT_VALUE, Field, FieldValueNotProvidedError, CastingError
+from ._mock_provider import MockProvider
 
 class TestField(unittest.TestCase):
     def test_field_initialization_with_default_values(self):
         field = Field(name="test_field")
         self.assertEqual(field.name, "test_field")
-        self.assertEqual(field._default, _NOT_SET)
+        self.assertEqual(field._default, NO_DEFAULT_VALUE)
         self.assertIsNone(field._caster)
-        self.assertFalse(field._attach_file_field)
-        self.assertEqual(field._populated_value, _NOT_SET)
+        self.assertIsNone(field._description)
+        self.assertFalse(field._file_field)
+        self.assertEqual(field._value, None)
 
-    def test_field_populate_with_provider_value(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = "123"
-        caster = Mock(spec=AbstractCaster)
-        caster.cast.return_value = 123
+    def test_description(self):
+        field = Field(name="test_field", description="description")
+        self.assertEqual(field.description, "description")
 
-        field = Field(name="test_field", caster=caster)
+    def test_default(self):
+        field = Field(name="test_field", default="default value")
+        self.assertEqual(field.default, "default value")
+
+    def test_populate_using_provided_value(self):
+        provider = MockProvider({"test_field": "hello world"})
+
+        field = Field("test_field")
         field.populate(provider)
 
-        self.assertEqual(field.populated_value, 123)
-        provider.get.assert_called_with("test_field")
-        caster.cast.assert_called_with("123")
+        self.assertEqual(field.value, "hello world")
 
-    def test_field_populate_with_default_value(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = None
-
-        field = Field(name="test_field", default=456)
+    def test_populate_using_default(self):
+        provider = MockProvider({})
+        field = Field(name="test_field", default="hello")
         field.populate(provider)
+        self.assertEqual(field.value, "hello")
 
-        self.assertEqual(field.populated_value, 456)
-
-    def test_field_populate_with_file_value(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.side_effect = lambda x: "file_path" if x == "test_field_FILE" else None
-
-        field = Field(name="test_field", attach_file_field=True)
-        with unittest.mock.patch("minicfg.field._read_raw_value_from_file", return_value="789"):
-            field.populate(provider)
-
-        self.assertEqual(field.populated_value, "789")
-
-    def test_field_populate_with_file_value_raises_casting_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.side_effect = lambda x: "file_path" if x == "test_field_FILE" else None
-        caster = Mock(spec=AbstractCaster)
-        caster.cast.side_effect = ValueError("Invalid cast")
-
-        field = Field(name="test_field", attach_file_field=True, caster=caster)
-        with unittest.mock.patch("minicfg.field._read_raw_value_from_file", return_value="invalid_value"):
-            with self.assertRaises(CastingError):
-                field.populate(provider)
-
-    def test_field_populate_raises_field_conflict_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.side_effect = lambda x: "value" if x == "test_field" else "file_path"
-
-        field = Field(name="test_field", attach_file_field=True)
-        with self.assertRaises(FieldConflictError):
-            field.populate(provider)
-
-    def test_field_populate_raises_casting_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = "invalid_value"
-        caster = Mock(spec=AbstractCaster)
-        caster.cast.side_effect = ValueError("Invalid cast")
-
-        field = Field(name="test_field", caster=caster)
-        with self.assertRaises(CastingError):
-            field.populate(provider)
-
-    def test_field_populate_raises_field_value_not_provided_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = None
-
+    def test_populate_no_value_and_no_default(self):
+        provider = MockProvider({})
         field = Field(name="test_field")
         with self.assertRaises(FieldValueNotProvidedError):
             field.populate(provider)
+
+    def test_populate_casting_error(self):
+        provider = MockProvider({"test_field": "hello"})
+
+        class MockCaster(AbstractCaster):
+            def typename(self) -> str | None:
+                return None
+
+            def cast(self, value: str) -> int:
+                raise ValueError("casting error")
+
+        field = Field(name="test_field", caster=MockCaster())
+        with self.assertRaises(CastingError):
+            field.populate(provider)
+
+    def test_populate_with_file_field_only_file_field(self):
+        provider = MockProvider({"test_field_FILE": "file_path"})
+
+        field = Field(name="test_field", attach_file_field=True)
+        with unittest.mock.patch("minicfg.field._read_raw_value_from_file", return_value="test value"):
+            field.populate(provider)
+
+        self.assertEqual(field.value, "test value")
+
+    def test_populate_with_file_field_only_field(self):
+        provider = MockProvider({"test_field": "value"})
+
+        field = Field(name="test_field", attach_file_field=True)
+        field.populate(provider)
+
+        self.assertEqual(field.value, "value")
+
+    def test_populate_with_file_field_both_provided(self):
+        provider = MockProvider({"test_field": "value", "test_field_FILE": "file_path"})
+
+        field = Field(name="test_field", attach_file_field=True)
+        field.populate(provider)
+
+        self.assertEqual(field.value, "value")
+
+    def test_populate_with_file_field_no_value(self):
+        provider = MockProvider({})
+
+        field = Field(name="test_field", attach_file_field=True)
+        with self.assertRaises(FieldValueNotProvidedError):
+            field.populate(provider)
+
+    def test_populate_with_file_field_no_value_default(self):
+        provider = MockProvider({})
+
+        field = Field(name="test_field", attach_file_field=True, default="default value")
+        field.populate(provider)
+        self.assertEqual(field.value, "default value")
 
 
 if __name__ == "__main__":

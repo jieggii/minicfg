@@ -1,5 +1,5 @@
 """
-This example demonstrates how to use a custom provider to populate the configuration.
+This example demonstrates how to use a custom provider to populate the configuration class.
 """
 
 from minicfg import Field, Minicfg
@@ -9,33 +9,33 @@ from minicfg.provider import AbstractProvider
 
 class MockProvider(AbstractProvider):
     """
-    A custom mock provider that provides the DATABASE_HOST value.
+    A custom mock provider.
     """
 
-    def __init__(self):
-        self.data = {
-            "DATABASE_HOST": "localhost",
-        }
+    data = {"DATABASE_HOST": "example.com", "DATABASE_PORT": "5432"}
 
     def get(self, key: str) -> str | None:
         return self.data.get(key)
 
 
-class MockConfig(Minicfg):
+class MyConfig(Minicfg):
+    """
+    My configuration class.
+    """
+
     DATABASE_HOST: str = Field()
-    DATABASE_PORT: int = Field(default=1234, caster=IntCaster())
-
-
-mock_provider = MockProvider()
-config = MockConfig.populated(mock_provider)
-
-print(f"{config.DATABASE_HOST=}")
-print(f"{config.DATABASE_PORT=}")
-
+    DATABASE_PORT: int = Field(caster=IntCaster())
 
 """
 Try running `python provider.py` and you should see the following output:
-
 >>> config.DATABASE_HOST='localhost'
->>> config.DATABASE_PORT=1234
+>>> config.DATABASE_PORT=5432
 """
+if __name__ == "__main__":
+    mock_provider = MockProvider()  # create a new instance of the custom provider
+
+    config = MyConfig()  # create a new instance of the config
+    config.populate(mock_provider)  # populate the config using the custom provider
+
+    print(f"{config.DATABASE_HOST=}")
+    print(f"{config.DATABASE_PORT=}")

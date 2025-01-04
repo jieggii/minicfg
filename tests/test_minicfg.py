@@ -1,77 +1,149 @@
 import unittest
-from unittest.mock import Mock, patch
+import unittest.mock
 
-from minicfg.field import Field, FieldConflictError, CastingError, FieldValueNotProvidedError, _NOT_SET
+from minicfg import Minicfg, minicfg_name, Field
+from minicfg.minicfg import minicfg_name_sep, _DEFAULT_NAME_SEP
 from minicfg.provider import AbstractProvider
-from minicfg.caster import AbstractCaster
+from ._mock_provider import MockProvider
 
 
-class TestField(unittest.TestCase):
+class TestMinicfg(unittest.TestCase):
+    def test_init_defaults(self):
+        class Config(Minicfg):
+            pass
 
-    def test_field_initialization(self):
-        field = Field(name="test_field", default="default_value", attach_file_field=True)
-        self.assertEqual(field.name, "test_field")
-        self.assertEqual(field._default, "default_value")
-        self.assertTrue(field._attach_file_field)
-        self.assertEqual(field._populated_value, _NOT_SET)
+        config = Config()
+        self.assertEqual(config._name, None)
+        self.assertEqual(config._name_sep, _DEFAULT_NAME_SEP)
 
-    def test_field_name_property(self):
-        field = Field(name="test_field")
-        self.assertEqual(field.name, "test_field")
-        field.name = "new_name"
-        self.assertEqual(field.name, "new_name")
+    def test_init(self):
+        class Config(Minicfg):
+            field_name = Field()
 
-    def test_field_populated_value_property(self):
-        field = Field()
-        self.assertEqual(field.populated_value, _NOT_SET)
-        field._populated_value = "populated_value"
-        self.assertEqual(field.populated_value, "populated_value")
+        config = Config()
+        self.assertEqual(config.field_name.name, "field_name")
 
-    def test_populate_with_raw_value(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = "raw_value"
-        field = Field(name="test_field")
-        field.populate(provider)
-        self.assertEqual(field.populated_value, "raw_value")
+    def test_init_nested(self):
+        @minicfg_name("config")
+        class Config(Minicfg):
+            @minicfg_name("nested")
+            class Nested(Minicfg):
+                field_name = Field()
 
-    def test_populate_with_file_field(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.side_effect = lambda key: "file_path" if key == "test_field_FILE" else None
-        field = Field(name="test_field", attach_file_field=True)
-        with patch("minicfg.field._read_raw_value_from_file", return_value="file_value"):
-            field.populate(provider)
-        self.assertEqual(field.populated_value, "file_value")
+        config = Config()
+        self.assertEqual(config.Nested.field_name.name, "config_nested_field_name")
 
-    def test_populate_with_default_value(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = None
-        field = Field(name="test_field", default="default_value")
-        field.populate(provider)
-        self.assertEqual(field.populated_value, "default_value")
+    def test_init_nested_inherit_name(self):
+        @minicfg_name("config")
+        class Config(Minicfg):
+            class Nested(Minicfg):
+                field_name = Field()
 
-    def test_populate_raises_field_conflict_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.side_effect = lambda key: "raw_value" if key == "test_field" else "file_value"
-        field = Field(name="test_field", attach_file_field=True)
-        with self.assertRaises(FieldConflictError):
-            field.populate(provider)
+        config = Config()
+        self.assertEqual("config_field_name", config.Nested.field_name.name)
 
-    def test_populate_raises_casting_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = "raw_value"
-        caster = Mock(spec=AbstractCaster)
-        caster.cast.side_effect = Exception("casting error")
-        field = Field(name="test_field", caster=caster)
-        with self.assertRaises(CastingError):
-            field.populate(provider)
+    def test_init_update_file_field_name(self):
+        @minicfg_name("config")
+        class Config(Minicfg):
+            field_name = Field(attach_file_field=True)
 
-    def test_populate_raises_field_value_not_provided_error(self):
-        provider = Mock(spec=AbstractProvider)
-        provider.get.return_value = None
-        field = Field(name="test_field")
-        with self.assertRaises(FieldValueNotProvidedError):
-            field.populate(provider)
+        config = Config()
+        self.assertEqual(f"config_field_name_FILE", config.field_name.file_field.name)
+
+    def test_init_nested_sep(self):
+        sep1 = "-"
+        sep2 = "_"
+
+        @minicfg_name("config")
+        @minicfg_name_sep(sep1)
+        class Config(Minicfg):
+            @minicfg_name("nested")
+            @minicfg_name_sep(sep2)
+            class Nested(Minicfg):
+                field_name = Field()
+
+        config = Config()
+        self.assertEqual(f"config{sep1}nested{sep2}field_name", config.Nested.field_name.name)
+
+    def test_new_populated(self):
+        class Config(Minicfg):
+            field_name = Field()
+
+        provider = MockProvider({
+            "field_name": "hello"
+        })
+        config = Config.new_populated(provider)
+        self.assertEqual("hello", config.field_name)
+
+    def test_populate(self):
+        class Config(Minicfg):
+            field_name = Field()
+
+        provider = MockProvider({
+            "field_name": "hello"
+        })
+        config = Config()
+        config.populate(provider)
+        self.assertEqual("hello", config.field_name)
+
+    def test_populate_nested(self):
+        @minicfg_name("config")
+        class Config(Minicfg):
+            field_name = Field()
+
+            @minicfg_name("nested1")
+            class Nested1(Minicfg):
+                field_name = Field()
+
+                @minicfg_name("nested2")
+                class Nested2(Minicfg):
+                    field_name = Field()
 
 
-if __name__ == "__main__":
+        provider = MockProvider({
+            "config_field_name": "1",
+            "config_nested1_field_name": "2",
+            "config_nested1_nested2_field_name": "3",
+        })
+
+        config = Config()
+        config.populate(provider)
+
+        self.assertEqual("1", config.field_name)
+        self.assertEqual("2", config.Nested1.field_name)
+        self.assertEqual("3", config.Nested1.Nested2.field_name)
+
+    def test_iter(self):
+        class Config(Minicfg):
+            field_name = Field()
+
+            class Child(Minicfg):
+                field_name = Field()
+
+        config = Config()
+
+        for child in config:
+            self.assertTrue(isinstance(child, Field) or isinstance(child, Minicfg))
+
+class TestDecorators(unittest.TestCase):
+    def test_minicfg_name(self):
+        name = "TEST_NAME"
+
+        @minicfg_name(name)
+        class Config(Minicfg):
+            pass
+
+        config = Config()
+        self.assertEqual(config._name, name)
+
+    def test_minicfg_name_sep(self):
+        sep = "test_sep"
+        @minicfg_name_sep(sep)
+        class Config(Minicfg):
+            pass
+
+        config = Config()
+        self.assertEqual(config._name_sep, sep)
+
+if __name__ == '__main__':
     unittest.main()
