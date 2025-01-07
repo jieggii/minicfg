@@ -29,13 +29,13 @@ from minicfg.caster import IntCaster
 class MyConfig(Minicfg):
     @minicfg_name("DATABASE")
     class Database(Minicfg):
-        HOST = Field(attach_file_field=True, description="database host")
-        PORT = Field(default=5432, caster=IntCaster(), description="database port")
+        HOST: str = Field(attach_file_field=True, description="database host")
+        PORT: int = Field(default=5432, caster=IntCaster(), description="database port")
 
     @minicfg_name("EXTERNAL_API")
     class ExternalAPI(Minicfg):
-        KEY = Field(description="external API key")
-        USER_ID = Field(caster=IntCaster(), description="external API user ID")
+        KEY: str = Field(description="external API key")
+        USER_ID: int = Field(caster=IntCaster(), description="external API user ID")
 
 
 if __name__ == '__main__':
