@@ -5,6 +5,8 @@ Usage: minicfg [--format <format>] <path>
 Example: minicfg --format plaintext my_package.my_module.MyConfig
 """
 
+import sys
+import os
 import argparse
 import importlib
 from enum import Enum
@@ -41,7 +43,14 @@ def _parse_args() -> argparse.Namespace:
 def main():
     args = _parse_args()
 
-    module_name, class_name = args.path.rsplit(".", 1)
+    module_path_tokens = args.path.rsplit(".")
+    if len(module_path_tokens) < 2:
+        raise ValueError("invalid path")
+
+    module_name = ".".join(module_path_tokens[:-1])
+    class_name = module_path_tokens[-1]
+
+    sys.path.insert(0, os.getcwd())  # add current directory to the path
     module = importlib.import_module(module_name)
 
     minicfg_class = getattr(module, class_name)
