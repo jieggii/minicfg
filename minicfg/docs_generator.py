@@ -1,7 +1,7 @@
 import dataclasses
 
 from minicfg import Field, Minicfg
-from minicfg.field import NO_DEFAULT_VALUE
+from minicfg.field import VALUE_NOT_SET
 
 
 def _generate_markdown_table(headers: list[str], data: list[list[str]]) -> str:
@@ -44,7 +44,7 @@ class FieldMeta:
         return cls(
             name=field.name,
             type=field.caster.typename if field.caster else "str",
-            default=str(field.default) if field.default is not NO_DEFAULT_VALUE else None,
+            default=str(field.default) if field.default is not VALUE_NOT_SET else None,
             description=field.description,
         )
 

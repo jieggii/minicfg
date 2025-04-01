@@ -1,3 +1,4 @@
+import typing
 from typing import Any
 
 from .caster import AbstractCaster
@@ -31,15 +32,13 @@ class FieldValueNotProvidedError(Exception):
         )
 
 
-NO_DEFAULT_VALUE = object()
+VALUE_NOT_SET = object()
 
 
-class Field:
+class RawValueField:
     """
     Field class represents a configuration field.
     """
-
-    _name: str  # name of the field
 
     _default: Any  # default value of the field
     _caster: AbstractCaster  # caster used to cast raw values
@@ -50,36 +49,18 @@ class Field:
 
     def __init__(
         self,
-        name: str | None = None,
-        default: Any = NO_DEFAULT_VALUE,
+        default: Any = VALUE_NOT_SET,
         caster: AbstractCaster | None = None,
-        description: str | None = None,
-        attach_file_field: bool = False,
     ):
         """
         Initialize the field.
-        :param name: name of the field. If not set, the name will be determined by the attribute name.
         :param default: default value of the field.
         :param caster: caster used to cast raw value to field value.
-        :param description: description of the field in documentation purposes.
-        :param attach_file_field: indicates whether file field should be attached to the field
         """
 
-        self._name = name
         self._default = default
         self._caster = caster
-        self._description = description
-        self._file_field = Field(name=f"{self._name}_FILE" if self._name else None, description=f"{self._description} file" if self._description else None) if attach_file_field else None
-
-        self._value = None
-
-    @property
-    def name(self) -> str | None:
-        return self._name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        self._name = value
+        self._value = VALUE_NOT_SET
 
     @property
     def default(self) -> Any:
@@ -113,13 +94,13 @@ class Field:
 
         return self._value
 
-    @property
-    def file_field(self) -> "Field | None":
-        """
-        Return the attached file field.
-        """
-
-        return self._file_field
+    # @property
+    # def file_field(self) -> "Field | None":
+    #     """
+    #     Return the attached file field.
+    #     """
+    #
+    #     return self._file_field
 
     def populate(self, provider: AbstractProvider) -> None:
         """
@@ -134,13 +115,13 @@ class Field:
                 try:
                     self._file_field.populate(provider)
                 except FieldValueNotProvidedError as e:
-                    if self._default is not NO_DEFAULT_VALUE:
+                    if self._default is not VALUE_NOT_SET:
                         # use the default value if it is provided
                         self._value = self._default
                         return
                     raise FieldValueNotProvidedError(field_name=self._name, provider=provider) from e
                 raw_value = _read_raw_value_from_file(self._file_field.value)
-            elif self._default is not NO_DEFAULT_VALUE:
+            elif self._default is not VALUE_NOT_SET:
                 # use the default value if it is provided
                 self._value = self._default
                 return
@@ -160,6 +141,41 @@ class Field:
                 ) from e
 
         self._value = populated_value
+
+
+class FileField:
+    def __init__(self):
+        pass
+
+
+class FieldWrapper:
+    def __init__(self, default: Any = VALUE_NOT_SET, caster: AbstractCaster | None = None, attach_file_field: bool = False):
+        """
+
+        """
+
+        self._raw_value_field = RawValueField(default=default, caster=caster)
+        self._file_field = FileField() if attach_file_field else None
+        self._file_field = None
+        self._value = VALUE_NOT_SET
+
+    @property
+    def value(self) -> typing.Any:
+        if self._value is VALUE_NOT_SET:
+            raise ValueError("field value is not set")  # todo: custom exception
+        return self._value
+
+    @value.setter
+    def value(self, value: typing.Any) -> None:
+        self._value = value
+
+    @property
+    def file_field(self) -> FileField:
+        return self._file_field
+
+    @property
+    def raw_value_field(self) -> RawValueField:
+        return self._raw_value_field
 
 
 def _read_raw_value_from_file(path: str) -> str:
